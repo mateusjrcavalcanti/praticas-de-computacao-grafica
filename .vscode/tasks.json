@@ -1,32 +1,46 @@
 {
-    "tasks": [
-        {
-            "type": "cppbuild",
-            "label": "C/C++: g++ arquivo de build ativo",
-            "command": "g++",
-            "args": [
-                "-fdiagnostics-color=always",
-                "-g",
-                "${file}",
-                "stb_image.cpp",
-                "-lGL",
-                "-lGLU",
-                "-lglut",
-                "-o",
-                "${fileDirname}/${fileBasenameNoExtension}"
-            ],
-            "options": {
-                "cwd": "${fileDirname}"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "detail": "Tarefa gerada pelo Depurador."
-        }
-    ],
-    "version": "2.0.0"
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Site: desenvolvimento",
+      "type": "shell",
+      "command": "npm run dev",
+      "windows": {
+        "command": "npm.cmd run dev"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/www"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Site: build Vite",
+      "type": "shell",
+      "command": "npm run build",
+      "windows": {
+        "command": "npm.cmd run build"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/www"
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "C++: build nativo",
+      "type": "shell",
+      "command": "npm run build:native",
+      "windows": {
+        "command": "npm.cmd run build:native"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/www"
+      },
+      "problemMatcher": ["$gcc"]
+    }
+  ]
 }

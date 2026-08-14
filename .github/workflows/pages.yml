@@ -1,0 +1,63 @@
+name: Publicar site Vite + WebAssembly
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Configurar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: www/package.json
+      - name: Configurar Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: www/pnpm-lock.yaml
+      - name: Configurar Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+      - name: Configurar Pages
+        id: pages
+        uses: actions/configure-pages@v5
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+        working-directory: www
+      - name: Compilar WebAssembly e aplicação Vite
+        run: pnpm build
+        working-directory: www
+        env:
+          VITE_SITE_URL: ${{ steps.pages.outputs.base_url }}
+          VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          VITE_REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+          VITE_COMMIT_SHA: ${{ github.sha }}
+      - name: Enviar artefato
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: www/dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publicar
+        id: deployment
+        uses: actions/deploy-pages@v5

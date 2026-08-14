@@ -1,0 +1,9 @@
+build/
+node_modules/
+.pnpm-store/
+.tools/
+www/dist/
+www/node_modules/
+www/public/wasm/
+www/pnpm-lock.yaml
+pnpm-lock.yaml

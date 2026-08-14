@@ -1,0 +1,105 @@
+name: Publicar executaveis nativos
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  validar-versao:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Conferir tag e package.json
+        run: node scripts/check-release-version.mjs
+
+  compilar:
+    needs: validar-versao
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            plataforma: linux-x64
+          - os: windows-latest
+            plataforma: windows-x64
+          - os: macos-15-intel
+            plataforma: macos-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar OpenGL e FreeGLUT no Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ freeglut3-dev
+
+      - name: Configurar MSYS2 no Windows
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-freeglut
+          path-type: inherit
+
+      - name: Compilar no Windows
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: node scripts/build-native.mjs
+
+      - name: Compilar no Linux ou macOS
+        if: runner.os != 'Windows'
+        run: node scripts/build-native.mjs
+
+      - name: Empacotar Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release | Out-Null
+          Compress-Archive -Path build/* -DestinationPath "release/praticas-de-computacao-grafica-${{ github.ref_name }}-${{ matrix.plataforma }}.zip"
+
+      - name: Empacotar Linux ou macOS
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p release
+          tar -czf "release/praticas-de-computacao-grafica-${{ github.ref_name }}-${{ matrix.plataforma }}.tar.gz" -C build .
+
+      - name: Armazenar pacote
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.plataforma }}
+          path: release/*
+          if-no-files-found: error
+
+  publicar:
+    needs: compilar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar pacotes
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+      - name: Criar GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true
+          fail_on_unmatched_files: true

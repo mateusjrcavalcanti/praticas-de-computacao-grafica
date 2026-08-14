@@ -1,1 +1,55 @@
+# Dependencias e caches de pacotes
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+
+# Builds do frontend
+dist/
+.vite/
+*.tsbuildinfo
+
+# Artefatos nativos (C/C++)
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
 *.exe
+*.out
+*.pdb
+
+# Emscripten / WebAssembly gerado
+.tools/
+www/public/wasm/
+*.wasm.map
+
+# Logs e relatorios de testes
+*.log
+logs/
+coverage/
+.eslintcache
+
+# Variaveis locais e segredos
+.env
+.env.*
+!.env.example
+
+# Arquivos temporarios de editores
+*.swp
+*.swo
+*~
+.idea/
+.vscode/*.local.json
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+Desktop.ini
